@@ -12,7 +12,7 @@ pub static EARTH_RADIUS: Length = Length {
 pub static MIN_LAT: Angle = Angle {
 	dimension: PhantomData,
 	units: PhantomData,
-	value: std::f64::consts::FRAC_PI_2,
+	value: -std::f64::consts::FRAC_PI_2,
 };
 
 /// Latitude of the north pole - Highest possible latitude
