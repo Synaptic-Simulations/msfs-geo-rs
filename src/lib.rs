@@ -1,3 +1,4 @@
+mod bearing_distance;
 mod bearing_to;
 pub mod constants;
 mod distance_bounds;
