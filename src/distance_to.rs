@@ -1,6 +1,6 @@
 use uom::si::{angle::radian, f64::Length};
 
-use crate::{constants::EARTH_RADIUS, coordinates::Coordinates};
+use crate::{constants::EARTH_RADIUS, Coordinates};
 
 impl Coordinates {
 	pub fn distance_to(self, to: Coordinates) -> Length {

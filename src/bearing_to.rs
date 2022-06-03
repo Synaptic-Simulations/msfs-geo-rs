@@ -4,7 +4,7 @@ use uom::si::{
 	ratio::ratio,
 };
 
-use crate::coordinates::Coordinates;
+use crate::Coordinates;
 
 impl Coordinates {
 	pub fn bearing_to(self, to: Coordinates) -> Angle {

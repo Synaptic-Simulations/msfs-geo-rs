@@ -6,7 +6,7 @@ use uom::si::{
 
 use crate::{
 	constants::{EARTH_RADIUS, MAX_LAT, MAX_LONG, MIN_LAT, MIN_LONG},
-	coordinates::Coordinates,
+	Coordinates,
 };
 
 impl Coordinates {
