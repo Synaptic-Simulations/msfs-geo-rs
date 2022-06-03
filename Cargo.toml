@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 uom = "0.32"
-ndarray = "0.15.4"
+nalgebra = "0.31.0"
