@@ -1,11 +1,17 @@
 use std::marker::PhantomData;
 
-use uom::si::f64::{Angle, Length};
+use uom::si::f64::{Angle, Length, Ratio};
 
 pub const EARTH_RADIUS: Length = Length {
 	dimension: PhantomData,
 	units: PhantomData,
 	value: 6378137.0,
+};
+
+pub const FULL_RATIO: Ratio = Ratio {
+	dimension: PhantomData,
+	units: PhantomData,
+	value: 1.0,
 };
 
 /// Latitude of the south pole - Lowest possible latitude

@@ -1,20 +1,11 @@
-use uom::si::{
-	angle::radian,
-	f64::{Angle, Ratio},
-	ratio::ratio,
-};
+use uom::si::f64::Angle;
 
 use crate::Coordinates;
 
 impl Coordinates {
 	pub fn bearing_to(self, to: Coordinates) -> Angle {
-		let lat1 = self.lat.get::<radian>();
-		let lat2 = to.lat.get::<radian>();
-		let long1 = self.long.get::<radian>();
-		let long2 = to.long.get::<radian>();
-
-		let y = Ratio::new::<ratio>((long2 - long1).sin() * lat2.cos());
-		let x = Ratio::new::<ratio>(lat1.cos() * lat2.sin() - lat1.sin() * lat2.cos() * (long2 - long1).cos());
+		let y = (to.long - self.long).sin() * to.lat.cos();
+		let x = self.lat.cos() * to.lat.sin() - self.lat.sin() * to.lat.cos() * (to.long - self.long).cos();
 
 		let theta = y.atan2(x);
 		return (theta + Angle::FULL_TURN) % Angle::FULL_TURN;

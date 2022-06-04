@@ -1,8 +1,4 @@
-use uom::si::{
-	angle::radian,
-	f64::{Angle, Length},
-	ratio::ratio,
-};
+use uom::si::f64::{Angle, Length};
 
 use crate::{
 	constants::{EARTH_RADIUS, MAX_LAT, MAX_LONG, MIN_LAT, MIN_LONG},
@@ -12,7 +8,7 @@ use crate::{
 impl Coordinates {
 	/// Returns the Southwest and Northeast corner of a box around coordinates with a minimum `distance`
 	pub fn distance_bounds(self, distance: Length) -> (Coordinates, Coordinates) {
-		let radial_distance: Angle = Angle::new::<radian>((distance / EARTH_RADIUS).get::<ratio>());
+		let radial_distance: Angle = (distance / EARTH_RADIUS).into();
 
 		let mut low_lat = self.lat - radial_distance;
 		let mut high_lat = self.lat + radial_distance;
@@ -21,7 +17,7 @@ impl Coordinates {
 		let mut high_long;
 
 		if low_lat > MIN_LAT && high_lat < MAX_LAT {
-			let delta_long = (radial_distance.sin().get::<ratio>() / self.lat.cos()).asin();
+			let delta_long = (radial_distance.sin() / self.lat.cos()).asin();
 			low_long = self.long - delta_long;
 
 			if low_long < MIN_LONG {

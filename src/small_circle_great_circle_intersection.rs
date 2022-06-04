@@ -1,48 +1,58 @@
-use uom::si::{
-	f64::{Angle, Length},
-	length::meter,
-	ratio::ratio,
+use uom::{
+	si::{
+		area::square_meter,
+		f64::{Angle, Area, Length},
+	},
+	ConstZero,
 };
 
-use crate::{constants::EARTH_RADIUS, spherical::XYZ, utility::diff_angle, Coordinates, Direction::Either};
+use crate::{
+	constants::{EARTH_RADIUS, FULL_RATIO},
+	spherical::XYZ,
+	utility::diff_angle,
+	Coordinates,
+	Direction::Either,
+};
 
 pub fn solve_with_permutations(
 	small_circle_xyz: XYZ, ns: XYZ, small_circle_radius: Length, permutations: [[usize; 3]; 3],
 ) -> Option<(Coordinates, Coordinates)> {
 	let mut permutation = permutations[0];
-	let mut denominator = ns[permutation[2]].value * small_circle_xyz[permutation[1]].value
-		- ns[permutation[1]].value * small_circle_xyz[permutation[2]].value;
+
+	let mut denominator =
+		ns[permutation[2]] * small_circle_xyz[permutation[1]] - ns[permutation[1]] * small_circle_xyz[permutation[2]];
+
 	let mut i = 1;
-	while denominator.abs() < 1e-4 && i < 3 {
+	while denominator.abs() < Area::new::<square_meter>(1e-4) && i < 3 {
 		permutation = permutations[i];
-		denominator = ns[permutation[2]].value * small_circle_xyz[permutation[1]].value
-			- ns[permutation[1]].value * small_circle_xyz[permutation[2]].value;
+		denominator = ns[permutation[2]] * small_circle_xyz[permutation[1]]
+			- ns[permutation[1]] * small_circle_xyz[permutation[2]];
 		i += 1;
 	}
 
-	let a = (-ns[permutation[2]].value * (small_circle_radius.value.powi(2) - 2.0 * EARTH_RADIUS.value.powi(2)))
+	let a = (-ns[permutation[2]] * (small_circle_radius * small_circle_radius - 2.0 * EARTH_RADIUS * EARTH_RADIUS))
 		/ 2.0 / denominator;
-	let b: f64 = -(ns[permutation[2]].value * small_circle_xyz[permutation[0]].value
-		- ns[permutation[0]].value * small_circle_xyz[permutation[2]].value)
+	let b = -(ns[permutation[2]] * small_circle_xyz[permutation[0]]
+		- ns[permutation[0]] * small_circle_xyz[permutation[2]])
 		/ denominator;
-	let c = (ns[permutation[1]].value * (small_circle_radius.value.powi(2) - 2.0 * EARTH_RADIUS.value.powi(2)))
+	let c = (ns[permutation[1]] * (small_circle_radius * small_circle_radius - 2.0 * EARTH_RADIUS * EARTH_RADIUS))
 		/ 2.0 / denominator;
-	let d: f64 = -(ns[permutation[1]].value * small_circle_xyz[permutation[0]].value
-		- ns[permutation[0]].value * small_circle_xyz[permutation[1]].value)
+	let d = -(ns[permutation[1]] * small_circle_xyz[permutation[0]]
+		- ns[permutation[0]] * small_circle_xyz[permutation[1]])
 		/ denominator;
 
-	let discriminant = -c.powi(2) * (1.0 + b.powi(2)) + 2.0 * a * b * c * d - a.powi(2) * (1.0 + d.powi(2))
-		+ (1.0 + b.powi(2) + d.powi(2)) * EARTH_RADIUS.value.powi(2);
+	let discriminant = -c * c * (FULL_RATIO + b * b) + 2.0 * a * b * c * d - a * a * (FULL_RATIO + d * d)
+		+ (FULL_RATIO + b * b + d * d) * EARTH_RADIUS * EARTH_RADIUS;
 
-	if discriminant < 0.0 {
+	if discriminant < Area::ZERO {
 		return None;
 	}
 
-	let mut result1 = [0.0, 0.0, 0.0];
-	let mut result2 = [0.0, 0.0, 0.0];
+	let mut result1: [Length; 3] = Default::default();
+	let mut result2: [Length; 3] = Default::default();
 
-	result1[permutation[0]] = (-a * b - c * d - discriminant.sqrt()) / (1.0 + b.powi(2) + d.powi(2));
-	result2[permutation[0]] = (-a * b - c * d + discriminant.sqrt()) / (1.0 + b.powi(2) + d.powi(2));
+	result1[permutation[0]] = (-a * b - c * d - discriminant.sqrt()) / (FULL_RATIO + b * b + d * d);
+	result2[permutation[0]] = (-a * b - c * d + discriminant.sqrt()) / (FULL_RATIO + b * b + d * d);
 
 	result1[permutation[1]] = a + b * result1[permutation[0]];
 	result2[permutation[1]] = a + b * result2[permutation[0]];
@@ -51,18 +61,8 @@ pub fn solve_with_permutations(
 	result2[permutation[2]] = c + d * result2[permutation[0]];
 
 	Some((
-		XYZ::new(
-			Length::new::<meter>(result1[0]),
-			Length::new::<meter>(result1[1]),
-			Length::new::<meter>(result1[2]),
-		)
-		.into(),
-		XYZ::new(
-			Length::new::<meter>(result2[0]),
-			Length::new::<meter>(result2[1]),
-			Length::new::<meter>(result2[2]),
-		)
-		.into(),
+		XYZ::new(result1[0], result1[1], result1[2]).into(),
+		XYZ::new(result2[0], result2[1], result2[2]).into(),
 	))
 }
 
@@ -76,9 +76,9 @@ impl Coordinates {
 		let v = great_circle_reference.calculate_v(great_circle_bearing);
 
 		let normal_vector = XYZ::new(
-			great_circle_xyz[1] * v.z.get::<ratio>() - great_circle_xyz[2] * v.y.get::<ratio>(),
-			great_circle_xyz[2] * v.x.get::<ratio>() - great_circle_xyz[0] * v.z.get::<ratio>(),
-			great_circle_xyz[0] * v.y.get::<ratio>() - great_circle_xyz[1] * v.x.get::<ratio>(),
+			great_circle_xyz[1] * v.z - great_circle_xyz[2] * v.y,
+			great_circle_xyz[2] * v.x - great_circle_xyz[0] * v.z,
+			great_circle_xyz[0] * v.y - great_circle_xyz[1] * v.x,
 		);
 
 		solve_with_permutations(

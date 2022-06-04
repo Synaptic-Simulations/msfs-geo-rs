@@ -1,23 +1,18 @@
-use uom::si::{
-	angle::radian,
-	f64::{Angle, Length},
-	ratio::ratio,
-};
+use uom::si::f64::{Angle, Length};
 
 use crate::{constants::EARTH_RADIUS, utility::clamp_angle_either, Coordinates};
 
 impl Coordinates {
 	/// Returns Coordinates on a given `bearing` at a given `distance` from Coordinates `self`
 	pub fn bearing_distance(self, bearing: Angle, distance: Length) -> Coordinates {
-		let radial_distance: Angle = Angle::new::<radian>((distance / EARTH_RADIUS).get::<ratio>());
-		let lat = (self.lat.sin() * radial_distance.cos().get::<ratio>()
-			+ self.lat.cos() * radial_distance.sin().get::<ratio>() * bearing.cos().get::<ratio>())
-		.asin();
+		let radial_distance: Angle = (distance / EARTH_RADIUS).into();
+		let lat =
+			(self.lat.sin() * radial_distance.cos() + self.lat.cos() * radial_distance.sin() * bearing.cos()).asin();
 
 		let long = clamp_angle_either(
 			self.long
-				+ (bearing.sin() * radial_distance.sin().get::<ratio>() * self.lat.cos().get::<ratio>())
-					.atan2(radial_distance.cos() - self.lat.sin() * lat.sin().get::<ratio>()),
+				+ (bearing.sin() * radial_distance.sin() * self.lat.cos())
+					.atan2(radial_distance.cos() - self.lat.sin() * lat.sin()),
 		);
 
 		Coordinates { lat, long }

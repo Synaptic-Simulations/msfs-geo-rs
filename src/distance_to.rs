@@ -1,19 +1,19 @@
-use uom::si::{angle::radian, f64::Length};
+use uom::si::f64::Length;
 
-use crate::{constants::EARTH_RADIUS, Coordinates};
+use crate::{
+	constants::{EARTH_RADIUS, FULL_RATIO},
+	Coordinates,
+};
 
 impl Coordinates {
 	pub fn distance_to(self, to: Coordinates) -> Length {
-		let lat1 = self.lat.get::<radian>();
-		let lat2 = to.lat.get::<radian>();
-
-		let delta_lat = (to.lat - self.lat).get::<radian>();
-		let delta_long = (to.long - self.long).get::<radian>();
+		let delta_lat = to.lat - self.lat;
+		let delta_long = to.long - self.long;
 
 		let a = (delta_lat / 2.0).sin() * (delta_lat / 2.0).sin()
-			+ lat1.cos() * lat2.cos() * (delta_long / 2.0).sin() * (delta_long / 2.0).sin();
+			+ self.lat.cos() * to.lat.cos() * (delta_long / 2.0).sin() * (delta_long / 2.0).sin();
 
-		let c = 2.0 * a.sqrt().atan2((1.0 - a).sqrt());
+		let c = 2.0 * a.sqrt().atan2((FULL_RATIO - a).sqrt());
 
 		return EARTH_RADIUS * c;
 	}

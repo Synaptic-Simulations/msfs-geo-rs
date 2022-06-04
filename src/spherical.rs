@@ -1,10 +1,8 @@
 use nalgebra::Matrix1x3;
 use uom::{
-	num_traits::Pow,
 	si::{
 		angle::radian,
 		f64::{Angle, Length, Ratio},
-		length::meter,
 		ratio::ratio,
 	},
 	ConstZero,
@@ -22,9 +20,9 @@ impl Coordinates {
 		let phi_unit = self.phi_unit_vector();
 
 		Matrix1x3::new(
-			-course.cos() * theta_unit[0].get::<ratio>() + course.sin() * phi_unit[0].get::<ratio>(),
-			-course.cos() * theta_unit[1].get::<ratio>() + course.sin() * phi_unit[1].get::<ratio>(),
-			-course.cos() * theta_unit[2].get::<ratio>() + course.sin() * phi_unit[2].get::<ratio>(),
+			-course.cos() * theta_unit[0] + course.sin() * phi_unit[0],
+			-course.cos() * theta_unit[1] + course.sin() * phi_unit[1],
+			-course.cos() * theta_unit[2] + course.sin() * phi_unit[2],
 		)
 	}
 
@@ -32,11 +30,7 @@ impl Coordinates {
 		let theta = self.theta();
 		let phi = self.phi();
 
-		UnitVector::new(
-			theta.cos() * phi.cos().get::<ratio>(),
-			theta.cos() * phi.sin().get::<ratio>(),
-			-theta.sin(),
-		)
+		UnitVector::new(theta.cos() * phi.cos(), theta.cos() * phi.sin(), -theta.sin())
 	}
 
 	pub fn phi_unit_vector(self) -> UnitVector {
@@ -92,19 +86,15 @@ impl From<XYZ> for Coordinates {
 		let y = xyz.y;
 		let z = xyz.z;
 
-		let theta = Angle::new::<radian>(
-			(x.get::<meter>().pow(2.0 as f64) + y.get::<meter>().pow(2.0 as f64))
-				.sqrt()
-				.atan2(z.get::<meter>()),
-		);
+		let theta = (x * x + y * y).sqrt().atan2(z);
 
 		let phi;
 		if x > Length::ZERO {
-			phi = Ratio::new::<ratio>(y.value / x.value).atan();
+			phi = (y / x).atan();
 		} else if x < Length::ZERO && y >= Length::ZERO {
-			phi = Ratio::new::<ratio>(y.value / x.value).atan() + Angle::HALF_TURN;
+			phi = (y / x).atan() + Angle::HALF_TURN;
 		} else if x < Length::ZERO && y < Length::ZERO {
-			phi = Ratio::new::<ratio>(y.value / x.value).atan() - Angle::HALF_TURN;
+			phi = (y / x).atan() - Angle::HALF_TURN;
 		} else if x == Length::ZERO && y > Length::ZERO {
 			phi = Angle::HALF_TURN;
 		} else {
@@ -121,9 +111,9 @@ impl From<Coordinates> for XYZ {
 		let phi = coordinates.phi();
 
 		Self::new(
-			EARTH_RADIUS * theta.sin().get::<ratio>() * phi.cos().get::<ratio>(),
-			EARTH_RADIUS * theta.sin().get::<ratio>() * phi.sin().get::<ratio>(),
-			EARTH_RADIUS * theta.cos().get::<ratio>(),
+			EARTH_RADIUS * theta.sin() * phi.cos(),
+			EARTH_RADIUS * theta.sin() * phi.sin(),
+			EARTH_RADIUS * theta.cos(),
 		)
 	}
 }
