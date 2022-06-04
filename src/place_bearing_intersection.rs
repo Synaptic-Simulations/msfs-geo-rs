@@ -2,7 +2,7 @@ use std::marker::PhantomData;
 
 use uom::si::f64::{Angle, Length};
 
-use crate::{utility::clamp_angle_cw, Coordinates, Spherical};
+use crate::{spherical::Spherical, utility::clamp_angle_cw, Coordinates};
 
 const INTERMEDIATE_PLACE_DISTANCE: Length = Length {
 	units: PhantomData,
