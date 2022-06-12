@@ -13,14 +13,14 @@ pub mod utility;
 
 use uom::si::{angle::degree, f64::Angle};
 
-#[derive(PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq)]
 pub enum Direction {
 	Left,
 	Right,
 	Either,
 }
 
-#[derive(Copy, Clone, Default, Debug)]
+#[derive(Copy, Clone, Default, Debug, PartialEq)]
 /// Coordinates represent a location on the surface of a sphere using angular distance from its equator and prime
 /// meridian
 pub struct Coordinates {
