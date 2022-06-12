@@ -13,7 +13,7 @@ pub mod utility;
 
 use uom::si::{angle::degree, f64::Angle};
 
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Direction {
 	Left,
 	Right,
